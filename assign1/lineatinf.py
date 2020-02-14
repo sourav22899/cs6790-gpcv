@@ -1,53 +1,58 @@
 import cv2
 from glob import glob
 import numpy as np
-import matplotlib
 from tqdm import tqdm
+np.set_printoptions(suppress=True, formatter={'float_kind':'{:f}'.format})
 
 from config import *
+from utils import *
+
 files = sorted(glob(OUTPUT_FILE_PATH + '/*'))
+COORDS, ACTUAL_COORDS = np.asarray(COORDS,dtype=np.int32), np.asarray(ACTUAL_COORDS,dtype=np.int32)
+AFFINE_COORDS = np.asarray(AFFINE_COORDS, dtype=np.int32)
 
-def find_key_points(img, coords, radius=5, color=(255,0,0)):
-    img_ = img.copy()
-    for point in coords:
-        x,y = point[0],point[1]
-        img_ = cv2.circle(img_, (x,y), radius, color, -1)
+for k, file in enumerate(files):
+    img = cv2.imread(file)
+    coords = COORDS[k]
+    _,_,l_inf = find_l_infinity(coords)
+    h = np.eye(3)
+    if k in [1,4,5]:
+        h = h*0.5
+    h[-1] = l_inf
+    img_n = get_rectified_image(img,h)
+
+    aff_coords = AFFINE_COORDS[k]
+    img_ = find_key_points(img_n, aff_coords)
+    cv2.imshow('rect_img',img_)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    aff_coords = aff_coords.flatten().reshape(4,2,-1)
+    p_lines = []
+    for i in range(aff_coords.shape[0]):
+        p_lines.append(get_line(aff_coords[i]))
+
+    A = np.zeros((2,3))
+    for i in range(A.shape[0]):
+        l1,l2 = p_lines[2*i],p_lines[2*i+1]
+        A[i] = np.asarray([l1[0]*l2[0],l1[0]*l2[1]+l1[1]*l2[0],l1[1]*l2[1]])
     
-    return img_
+    _,_,vh = np.linalg.svd(A)
+    x = vh.T[:,-1]
+    s = np.asarray([[x[0],x[1]],[x[1],x[2]]])
+    u,d,_ = np.linalg.svd(s)
+    K = np.matmul(u,np.diag(np.sqrt(d)))
+    H = np.eye(3,3)
+    H[0:2,0:2] = K
 
-def max_neighbour(img,i,j):
-    dict_ = {}
-    for x in [i-1,i,i+1]:
-        for y in [j-1,j,j+1]:
-            dict_[np.sum(img[x,y])] = img[x,y]
-    m = max(dict_.keys())
-    
-    return dict_[m]
+    H_inv = np.linalg.pinv(H)
+    H_inv = np.divide(H_inv,H_inv[-1,-1])
+    y_off = -int(img.shape[0]//2) if k > 2 else 0
+    img_n = get_shifted_rectified_image(img_n,H_inv,x_off=img.shape[1],y_off=y_off)
 
-def manual_interpolation(img):
-    img_ = img.copy()
-    h,w = img_.shape[0],img_.shape[1]
-    for y in tqdm(range(1,h-1)):
-        for x in range(1,w-1):
-            if np.sum(img_[y,x]) == 0:
-                img_[y,x] = max_neighbour(img,y,x)
-    img_[0] = img_[1]
-    img_[-1] = img_[-2]
-    img_[:,0] = img_[:,1]
-    img_[:,-1] = img_[:,-2]
-
-    return img_
-
-COORDS = np.asarray([[[200,99],[390,55],[283,269],[504,196]],\
-                    [[109,212],[280,150],[332,290],[533,266]],\
-                    [[112,109],[294,78],[174,293],[384,222]],\
-                    [[284,108],[374,117],[266,183],[369,193]],\
-                    [[213,130],[392,76],[224,338],[390,220]],\
-                    [[357,40],[584,116],[331,387],[568,320]]])
-
-ACTUAL_COORDS = np.asarray([[[200,100],[400,100],[200,300],[400,300]],\
-                            [[200,100],[400,100],[200,300],[400,300]],\
-                            [[160,80],[320,80],[160,240],[320,240]],\
-                            [[300,50],[400,50],[300,200],[400,200]],\
-                            [[175,100],[425,100],[175,270],[425,270]],\
-                            [[200,150],[550,150],[200,400],[550,400]]])
+    fname = 'q2' + str(k+1) + '.jpg'
+    img_n = cv2.flip(img_n, 1)
+    cv2.imwrite(fname,img_n)
+    cv2.imshow('rect_img',img_n)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

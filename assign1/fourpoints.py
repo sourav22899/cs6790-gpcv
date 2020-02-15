@@ -7,7 +7,8 @@ from config import *
 from utils import *
 
 files = sorted(glob(OUTPUT_FILE_PATH + '/*'))
-COORDS, ACTUAL_COORDS = np.asarray(COORDS,dtype=np.int32), np.asarray(ACTUAL_COORDS,dtype=np.int32)
+COORDS = np.asarray(COORDS,dtype=np.int32)
+ACTUAL_COORDS = np.asarray(ACTUAL_COORDS,dtype=np.int32)
 
 for k, file in enumerate(files):
     img = cv2.imread(file)

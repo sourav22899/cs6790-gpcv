@@ -82,8 +82,10 @@ def get_shifted_rectified_image(img,H,x_off=0,y_off=0):
         for x in range(w):
             x_new, y_new, z_new = H.dot([x,y,1])
             x_new, y_new = int(np.around(x_new/z_new)),int(np.around(y_new/z_new))
-            x_new = x_new + x_off
-            y_new = y_new + y_off
+            print(x_new,y_new)
+            x_new = x_new + int(x_off)
+            y_new = y_new + int(y_off)
+            print('n:',x_new,y_new)
             if 0 <= x_new < w and 0 <= y_new < h:
                 r_img[y_new,x_new,:] = img[y,x,:]
 

@@ -8,7 +8,7 @@ from config import *
 from utils import *
 
 files = sorted(glob(OUTPUT_FILE_PATH + '/*'))
-COORDS, ACTUAL_COORDS = np.asarray(COORDS,dtype=np.int32), np.asarray(ACTUAL_COORDS,dtype=np.int32)
+COORDS = np.asarray(COORDS,dtype=np.int32)
 AFFINE_COORDS = np.asarray(AFFINE_COORDS, dtype=np.int32)
 
 for k, file in enumerate(files):

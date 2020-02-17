@@ -19,14 +19,10 @@ for k, file in enumerate(files):
     cv2.destroyAllWindows()
 
     p_coords = coords.flatten().reshape(10,2,-1)
-    print(p_coords)
     p_lines = []
     for i in range(p_coords.shape[0]):
         p_lines.append(get_line(p_coords[i]))
     
-    for i in p_lines:
-        print(i)
-
     A = np.zeros((5,6))
     for i in range(A.shape[0]):
         l1,l2 = p_lines[2*i],p_lines[2*i+1]
@@ -36,27 +32,20 @@ for k, file in enumerate(files):
 
     _,_,vh = np.linalg.svd(A)
     x = vh.T[:,-1]
-    print('x:',x)
     s = np.asarray([[x[0],0.5*x[1],0.5*x[3]],\
                     [0.5*x[1],x[2],0.5*x[4]],\
                     [0.5*x[3],0.5*x[4],x[5]]])
-    print('s:')
-    print(s)
+
     u,d,_ = np.linalg.svd(s)
     d = np.sqrt(d); d[-1] = 1
     H = np.matmul(u,np.diag(d))
-    print('root_d:',d)
     H_inv = np.linalg.pinv(H)
     H_inv = np.divide(H_inv,H_inv[-1,-1])
-    print('H_inv:')
-    print(H_inv)
 
-    img_n = get_shifted_rectified_image(img,H_inv,x_off=img.shape[1],y_off=img.shape[0])
+    img_n = get_shifted_rectified_image(img,H_inv,x_off=img.shape[1],y_off=1.5*img.shape[0])
     fname = 'q3' + str(k+1) + '.jpg'
+    img_n = cv2.rotate(img_n, cv2.ROTATE_180)
     cv2.imwrite(fname,img_n)
     cv2.imshow('rect_img',img_n)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-    if k == 0:
-        break

@@ -12,6 +12,8 @@ COORDS = np.asarray(COORDS,dtype=np.int32)
 AFFINE_COORDS = np.asarray(AFFINE_COORDS, dtype=np.int32)
 
 for k, file in enumerate(files):
+    k=4
+    file = files[4]
     img = cv2.imread(file)
     coords = COORDS[k]
     _,_,l_inf = find_l_infinity(coords)
@@ -45,6 +47,8 @@ for k, file in enumerate(files):
     H = np.eye(3,3)
     H[0:2,0:2] = K
 
+    print(H)
+
     H_inv = np.linalg.pinv(H)
     H_inv = np.divide(H_inv,H_inv[-1,-1])
     y_off = -int(img.shape[0]//2) if k > 2 else 0
@@ -56,3 +60,6 @@ for k, file in enumerate(files):
     cv2.imshow('rect_img',img_n)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+    if k == 0:
+        break

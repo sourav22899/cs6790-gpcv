@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
+from config import *
+
 def find_key_points(img, coords, radius=5, color=(255,0,0)):
     img_ = img.copy()
     for point in coords:

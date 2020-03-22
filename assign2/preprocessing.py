@@ -6,8 +6,8 @@ np.set_printoptions(suppress=True, formatter={'float_kind':'{:f}'.format})
 from config import *
 from utils import *
 
-files = sorted(glob(INPUT_FILE_PATH + '/*'))
-print(files)
+files = sorted(glob('/home/sourav/Semester VI/CS 6790/Images_assign_2/*'))
+
 for k,file in enumerate(files):
     img = cv2.imread(file)
     resize_f = 2
@@ -18,7 +18,7 @@ for k,file in enumerate(files):
     res = cv2.resize(img, (width_,height_), interpolation=cv2.INTER_CUBIC)
     print(img.shape)
     filename = 'image' + str(k+1) + '.jpg'
-    cv2.imwrite(filename, img)
+    cv2.imwrite(filename, res)
     cv2.imshow('image', res)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
